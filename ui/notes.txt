@@ -1,4 +1,0 @@
-Add the two lines below to the bottom of the ui cmakelists.txt
-
-target_include_directories(ui PUBLIC .)
-target_link_libraries(ui PRIVATE idf::main)
