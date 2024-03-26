@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.16)
+idf_component_register(SRCS "main.c"
+                       INCLUDE_DIRS "." "ui"
+                       REQUIRES lvgl
+                       REQUIRES esp_lcd
+                       )
 
-include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(rgb_panel)
+add_subdirectory(ui)
+target_link_libraries(${COMPONENT_LIB} PRIVATE ui)
