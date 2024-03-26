@@ -12,7 +12,9 @@
 #include "esp_timer.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_rgb.h"
-#include "espressif__esp_lcd_touch_gt911/include/esp_lcd_touch_gt911.h"
+#include "esp_lcd_panel_io.h"
+//#include "espressif__esp_lcd_touch/include/esp_lcd_touch.h"
+#include "esp_lcd_touch_gt911.h"
 #include "driver/gpio.h"
 #include "driver/i2c_master.h"
 #include "esp_err.h"
@@ -56,12 +58,13 @@ i2c_master_bus_config_t i2c_mst_cfg =
 i2c_device_config_t tp_i2c_cfg = {
     .dev_addr_length = I2C_ADDR_BIT_LEN_7,
     .device_address = 0x5D, //TCS34725_ADDRESS,
-    .scl_speed_hz = 100000,
+    .scl_speed_hz = 400000,
 };
 
-i2c_master_bus_handle_t bus0;
-i2c_master_dev_handle_t tp_i2c_handle;
 
+i2c_master_bus_handle_t bus0;
+//i2c_master_dev_handle_t tp_i2c_handle;
+esp_lcd_panel_io_handle_t tp_i2c_handle;
 
 #if CONFIG_DOUBLE_FB
 #define LCD_NUM_FB             2
@@ -151,9 +154,10 @@ void app_main(void)
     gpio_set_pull_mode(i2c_mst_cfg.sda_io_num,GPIO_PULLUP_ONLY);
     gpio_set_direction(i2c_mst_cfg.scl_io_num,GPIO_MODE_INPUT_OUTPUT);
     gpio_set_direction(i2c_mst_cfg.sda_io_num,GPIO_MODE_INPUT_OUTPUT);
+    lcd_io_cfg.scl_speed_hz = 100000;
     vTaskDelay(100 / portTICK_PERIOD_MS);
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_cfg,&bus0));
-    uint8_t addr;
+    /*uint8_t addr;
     esp_err_t ret;
     for(int i = 0; i <128; i+=16){
         for(int j = 0;j<16;j++){
@@ -168,9 +172,10 @@ void app_main(void)
             //ESP_LOGI(TAG, "%02x ", addr);
             break;
          }
-    }
+    }*/
     //i2c_del_master_bus(bus0);
-    i2c_master_bus_add_device(bus0, &tp_i2c_cfg, &tp_i2c_handle);    
+    ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(bus0,&lcd_io_cfg,&tp_i2c_handle));
+    //i2c_master_bus_add_device(bus0, &tp_i2c_cfg, &tp_i2c_handle);    
     
     static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
     static lv_disp_drv_t disp_drv;      // contains callback functions
@@ -307,13 +312,21 @@ void app_main(void)
     uint16_t touch_strength[1];
     uint8_t touch_cnt = 0;
 
-    ESP_LOGI(TAG, "monitor touchpad");
+    lv_area_t a;
+    lv_obj_get_coords(ui_Button1,&a);
+    ESP_LOGI(TAG, "button x:%02d y:%02d", a.x1,a.y1);
     while(1){
         vTaskDelay(100 / portTICK_PERIOD_MS);
         esp_lcd_touch_read_data(tp);
         bool touchpad_pressed = esp_lcd_touch_get_coordinates(tp, touch_x, touch_y, touch_strength, &touch_cnt, 1);
         if(touchpad_pressed){
             ESP_LOGI(TAG, "Touch x:%02d y:%02d", touch_x[0],touch_y[0]);
+            if ((touch_x[0] > a.x1) && (touch_x[0] < a.x2) && (touch_y[0] > a.y1) && (touch_y[0] > a.y2))
+            {
+                lv_event_t e;
+                Button_pressed(&e);
+            }
+            
         }
     }
 }
