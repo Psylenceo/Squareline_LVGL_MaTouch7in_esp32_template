@@ -55,15 +55,8 @@ i2c_master_bus_config_t i2c_mst_cfg =
     //.trans_queue_depth = 1,
     .flags.enable_internal_pullup = 1,    
 };
-i2c_device_config_t tp_i2c_cfg = {
-    .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-    .device_address = 0x5D, //TCS34725_ADDRESS,
-    .scl_speed_hz = 400000,
-};
-
 
 i2c_master_bus_handle_t bus0;
-//i2c_master_dev_handle_t tp_i2c_handle;
 esp_lcd_panel_io_handle_t tp_i2c_handle;
 
 #if CONFIG_DOUBLE_FB
