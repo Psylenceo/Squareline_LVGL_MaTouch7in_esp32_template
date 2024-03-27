@@ -8,5 +8,7 @@
 void Button_pressed(lv_event_t * e)
 {
 	// Your code here
+	int perc = lv_bar_get_value(ui_Bar1);
+	if(perc >= 100) lv_bar_set_value(ui_Bar1,0,LV_ANIM_OFF);
 	_ui_bar_increment(ui_Bar1,5,LV_ANIM_OFF);
 }
